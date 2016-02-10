@@ -54,6 +54,96 @@ Animation.prototype.isDone = function () {
 };
 
 
+function StatTrack(game) {
+
+    this.name = "Stats";
+    this.stats;
+
+    Entity.call(this, game, 0, 400);
+
+}
+
+StatTrack.prototype = new Entity();
+StatTrack.prototype.constructor = StatTrack;
+
+StatTrack.prototype.update = function(ctx) {
+    this.stats = this.getSoldierStats();
+};
+
+StatTrack.prototype.draw = function(ctx) {
+    var canvas = document.getElementById('gameWorld');
+
+    var opacity = 0;
+
+    // for wave counter
+
+    ctx.font="15px Courier New";
+    ctx.fillStyle = "white";
+
+  //  ctx.fillText("Wave: " + globals.wave, 10, 55);
+
+   // if (globals.player.health > 0) {
+
+    //var armyStats = this.getSoldierStats();
+
+
+    ctx.fillText("Left Soldiers remaining: " + this.game.leftArmy.length, 40, 50);
+    ctx.fillText("Left Soldier Hit Chance: " + (this.stats.leftHit * 10) + "%", 40, 70);
+    ctx.fillText("Left Commander Alive: " + !this.stats.leftDead, 40, 90);
+
+
+    ctx.fillText("Right Soldier Hit Chance: " + (this.stats.rightHit * 10) + "%", canvas.width / 2, 70);
+    ctx.fillText("Right Commander Alive: " + !this.stats.rightDead, canvas.width / 2, 90);
+    ctx.fillText("Right Soldiers remaining: " + this.game.rightArmy.length, canvas.width / 2, 50);
+
+        // for blood - we don't need this if you guys don't like it
+        // decrease the first hardcoded number to lower threshold
+        //opacity += .3 - (globals.player.health / 100);
+        // for testing numbers:
+        // this.game.ctx.fillText(opacity, 10, 100);
+      //  ctx.fillStyle = "rgba(195, 0, 0, " + opacity + ")";
+       // ctx.fillRect(0,0, canvas.width, canvas.height);
+   // } else {
+      //  ctx.fillStyle = "rgba(195, 0, 0, " + .5 + ")";
+      //  ctx.fillRect(0,0, canvas.width, canvas.height);
+     //   ctx.fillStyle = "white";
+     //   ctx.font="50px Courier New";
+      //  ctx.fillText("YOU DEAD HOMIE rip", 125, canvas.height / 2);
+
+};
+
+StatTrack.prototype.getSoldierStats = function() {
+
+    var result = {};
+
+    result["leftHit"] = this.game.leftArmy[0].hitChance;
+    result["rightHit"] = this.game.rightArmy[0].hitChance;
+
+    var leftDead = this.commanderDead(this.game.leftArmy);
+    var rightDead = this.commanderDead(this.game.rightArmy);
+
+    result["leftDead"] = leftDead;
+    result["rightDead"] = rightDead;
+
+    return result;
+
+
+
+};
+
+StatTrack.prototype.commanderDead = function(arr) {
+    var commandDead = true;
+
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i].type ===  "commander" && arr[i].health > 0) {
+            commandDead = false;
+            break;
+        }
+
+    }
+    return commandDead;
+};
+
 // GameBoard code below
 
 function distance(a, b) {
@@ -88,7 +178,7 @@ function Soldier(game, startX, startY, team, type) {
 
     switch(type) {
         case "grunt":
-            this.hitChance = 5;
+            this.hitChance = 6;
             this.radius = 20;
             this.damageMax = 30;
             this.health = 100;
@@ -147,9 +237,14 @@ Soldier.prototype.die = function() {
     if (this.type === "commander") {
 
         //My team is demoralized, lower their hit chance
-        var arr = (this.team === "left") ? this.game.leftArmy : this.game.rightArmy;
+        //var arr = (this.team === "left") ? this.game.leftArmy : this.game.rightArmy;
+        var arr;
+        if (this.team === "left") arr = this.game.leftArmy;
+        else arr = this.game.rightArmy;
+
+        console.log("Commander dead, lowering my team's hitChance");
         for (var i = 0; i < arr.length; i++ ) {
-            this.hitChance -= 3;
+            arr[i].hitChance -= 3;
         }
 
     }
@@ -165,6 +260,7 @@ Soldier.prototype.draw = function(ctx) {
     if (this.team === "right") ctx.fillStyle = "#d4f835";
 
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    ctx.fillText(""+this.health, this.x + this.radius, this.y+ this.radius);
     ctx.fill();
 
   //  Entity.draw.call(this);
@@ -185,8 +281,8 @@ Soldier.prototype.findClosestEnemy = function(team) {
 };
 
 Soldier.prototype.attack = function(enemy) {
-    var hitChance = randomInt(this.hitChance) + 1;
-    if (hitChance >= 10 - this.hitChance) {
+    var hitOrNah = randomInt(10) + 1;
+    if (hitOrNah >= 10 - this.hitChance) {
 
         var damage = randomInt(this.damageMax) + 1;
         enemy.health -= damage;
@@ -249,8 +345,11 @@ ASSET_MANAGER.downloadAll(function () {
 
 
     var gameEngine = new GameEngine();
-
+    var statTracker = new StatTrack(gameEngine);
    // createArmy(game, "left");
+
+
+    gameEngine.addEntity(statTracker);
     createArmy(gameEngine, "right");
     createArmy(gameEngine, "left");
    // var circle = new Circle(gameEngine);
