@@ -69,13 +69,14 @@ function randomInt(n) {
 }
 
 
-function Soldier(game, startX, startY, team) {
+function Soldier(game, startX, startY, team, type) {
     this.team = team;
-    this.health = 100;
-    this.moveSpeed = 30;
-    this.radius = 20;
+    //this.health = 100;
+   // this.moveSpeed = 30;
+  //  this.radius = 20;
     this.game = game;
     this.animations = {};
+    this.type = type;
     this.animations.idle = new Animation(ASSET_MANAGER.getAsset("./img/soldiers.png"), 0, 280, 48, 35,.15, 1, true, true);
 
     this.target = null;
@@ -84,6 +85,24 @@ function Soldier(game, startX, startY, team) {
     this.velocity = {};
     this.velocity.x = 0;
     this.velocity.y = 0;
+
+    switch(type) {
+        case "grunt":
+            this.hitChance = 5;
+            this.radius = 20;
+            this.damageMax = 30;
+            this.health = 100;
+            this.moveSpeed = 30;
+            break;
+        case "commander":
+            this.hitChance = 8;
+            this.radius = 40;
+            this.damageMax = 60;
+            this.health = 250;
+            this.moveSpeed = 50;
+            break;
+    }
+
 
     Entity.call(this, game, startX, startY);
 }
@@ -101,7 +120,7 @@ Soldier.prototype.update = function() {
         var enemy = this.findClosestEnemy(this.team);
         if (enemy) this.target = enemy;
     }
-    //not an else branch because this should execute as soon as a target is selected
+
     if (this.target) {
 
 
@@ -116,13 +135,29 @@ Soldier.prototype.update = function() {
         if (this.target.health <= 0) this.target = null;
 
     }
+
     if (this.health <= 0) this.die();
 
 
     Entity.prototype.update.call(this);
 };
 
-Soldier.prototype.die = function() { this.removeFromWorld = true;};
+Soldier.prototype.die = function() {
+
+    if (this.type === "commander") {
+
+        //My team is demoralized, lower their hit chance
+        var arr = (this.team === "left") ? this.game.leftArmy : this.game.rightArmy;
+        for (var i = 0; i < arr.length; i++ ) {
+            this.hitChance -= 3;
+        }
+
+    }
+
+
+
+    this.removeFromWorld = true;
+};
 
 Soldier.prototype.draw = function(ctx) {
     ctx.beginPath();
@@ -150,10 +185,10 @@ Soldier.prototype.findClosestEnemy = function(team) {
 };
 
 Soldier.prototype.attack = function(enemy) {
-    var hitChance = randomInt(10) + 1;
-    if (hitChance >= 7) {
+    var hitChance = randomInt(this.hitChance) + 1;
+    if (hitChance >= 10 - this.hitChance) {
 
-        var damage = randomInt(30);
+        var damage = randomInt(this.damageMax) + 1;
         enemy.health -= damage;
     }
 };
@@ -181,7 +216,7 @@ function createArmy(game, side) {
     var startY = 10; //Top of canvas
 
     for (var i = 0; i < 10; i++) {
-        var sold = new Soldier(game, startX, startY, side);
+        var sold = new Soldier(game, startX, startY, side, "grunt");
         startY += 80; //Soldier height;
         if (side === "right") {
             game.rightArmy.push(sold);
@@ -190,6 +225,11 @@ function createArmy(game, side) {
         }
 
     }
+    var commandX = (side === "right") ? canvas.width -160 : 80;
+    var commander = new Soldier(game, commandX, canvas.height / 2, side, "commander");
+
+    if (side === "right") game.rightArmy.push(commander);
+    else game.leftArmy.push(commander);
 
 
 }
