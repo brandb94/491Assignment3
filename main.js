@@ -80,6 +80,11 @@ function Soldier(game, startX, startY, team) {
 
     this.target = null;
 
+    //Movement stuff
+    this.velocity = {};
+    this.velocity.x = 0;
+    this.velocity.y = 0;
+
     Entity.call(this, game, startX, startY);
 }
 
@@ -88,16 +93,36 @@ Soldier.prototype.constructor = Soldier;
 
 Soldier.prototype.update = function() {
 
+    //move
+    this.x += this.velocity.x * this.game.clockTick;
+    this.y += this.velocity.y * this.game.clockTick;
+
     if (!this.target) {
         var enemy = this.findClosestEnemy(this.team);
         if (enemy) this.target = enemy;
-    } else { //target exists
-        //Move to Target
     }
+    //not an else branch because this should execute as soon as a target is selected
+    if (this.target) {
+
+
+        if (distance(this, this.target) < this.radius + this.target.radius) {
+            //close enough to attack
+            this.attack(this.target);
+        } else {
+            //Try to close the distance
+            this.moveTowards(this.target);
+
+        }
+        if (this.target.health <= 0) this.target = null;
+
+    }
+    if (this.health <= 0) this.die();
 
 
     Entity.prototype.update.call(this);
 };
+
+Soldier.prototype.die = function() { this.removeFromWorld = true;};
 
 Soldier.prototype.draw = function(ctx) {
     ctx.beginPath();
@@ -123,6 +148,28 @@ Soldier.prototype.findClosestEnemy = function(team) {
     }
     return closest;
 };
+
+Soldier.prototype.attack = function(enemy) {
+    var hitChance = randomInt(10) + 1;
+    if (hitChance >= 7) {
+
+        var damage = randomInt(30);
+        enemy.health -= damage;
+    }
+};
+
+Soldier.prototype.moveTowards = function(enemy) {
+
+    var dx = enemy.x - this.x;
+    var dy = enemy.y - this.y;
+
+    var pointDistance = Math.sqrt(dx * dx + dy * dy);
+
+    this.velocity.x = (dx / pointDistance) * this.moveSpeed;
+    this.velocity.y = (dy / pointDistance) * this.moveSpeed;
+
+
+}
 
 
 

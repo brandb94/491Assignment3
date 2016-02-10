@@ -111,7 +111,7 @@ GameEngine.prototype.draw = function () {
     this.drawEntitiesIn(this.rightArmy);
 
     //Draw bullets
-    this.drawEntitiesIn(this.bullets);
+    //this.drawEntitiesIn(this.bullets);
 
     this.ctx.restore();
 };
@@ -157,13 +157,13 @@ GameEngine.prototype.update = function () {
 
     //update bullets
 
-    this.updateEntitiesIn(this.bullets);
+    //this.updateEntitiesIn(this.bullets);
 
 
     //remove entities and bullets that are donezo
 
     this.removeFinishedFrom(this.entities);
-    this.removeFinishedFrom(this.bullets);
+    //this.removeFinishedFrom(this.bullets);
 
     //relevant
     this.removeFinishedFrom(this.leftArmy);
