@@ -1,5 +1,10 @@
 // This game shell was happily copied from Googler Seth Ladd's "Bad Aliens" game and his Google IO talk in 2011
 
+var gameState = {
+  paused:false
+};
+
+
 window.requestAnimFrame = (function () {
     return window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
@@ -29,6 +34,13 @@ Timer.prototype.tick = function () {
 };
 
 function GameEngine() {
+    this.gameState = {
+        PAUSED:false,
+        GAMEOVER:false,
+        SPEED:1.0
+
+    };
+
     this.entities = [];
     this.leftArmy = [];//testing best place to put this
     this.rightArmy = [];
@@ -40,6 +52,7 @@ function GameEngine() {
     this.surfaceWidth = null;
     this.surfaceHeight = null;
 }
+
 
 GameEngine.prototype.init = function (ctx) {
     this.ctx = ctx;
@@ -59,12 +72,26 @@ GameEngine.prototype.start = function () {
     })();
 };
 
+GameEngine.prototype.pauseGame = function() {
+    //Flip pause value
+    this.gameState.PAUSED = !this.gameState.PAUSED;
+};
+
+
+
 GameEngine.prototype.startInput = function () {
     console.log('Starting input');
     var that = this;
+    var canvas = document.getElementById('gameWorld');
 
-    this.ctx.canvas.addEventListener("keydown", function (e) {
-        if (String.fromCharCode(e.which) === ' ') that.space = true;
+    canvas.addEventListener("keydown", function (e) {
+        console.log(e.keyCode + " key pressed");
+        if (e.keyCode === 32) {
+            console.log("Pause Called");
+            that.pauseGame();
+
+            //e.preventDefault();
+        }
 //        console.log(e);
         e.preventDefault();
     }, false);
@@ -72,6 +99,8 @@ GameEngine.prototype.startInput = function () {
 
     this.ctx.canvas.addEventListener("click", function(e) {
         if (e.button == 0) that.leftClick = true;
+        console.log("click event fired");
+        that.pauseGame();
         e.preventDefault();
 
     }, false);
@@ -102,6 +131,8 @@ GameEngine.prototype.addEntity = function (entity) {
 //This approach may end up getting redundant if we end up with more arrays of different entity types
 
 GameEngine.prototype.draw = function () {
+
+
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     this.ctx.save();
     //Draw entities
@@ -149,6 +180,8 @@ GameEngine.prototype.update = function () {
 
     //update entities
 
+
+
     this.updateEntitiesIn(this.entities);
 
 
@@ -173,11 +206,32 @@ GameEngine.prototype.update = function () {
 };
 
 GameEngine.prototype.loop = function () {
-    this.clockTick = this.timer.tick();
-    this.update();
-    this.draw();
+    if (this.checkGameOver()) this.gameState.GAMEOVER = true;
+
+    if (!this.gameState.PAUSED && !this.gameState.GAMEOVER) {
+        this.clockTick = this.timer.tick();
+        this.update();
+        this.draw();
+    }
     //this.space = null;
 };
+
+GameEngine.prototype.checkGameOver = function() {
+  return this.isArrEmpty(this.leftArmy) || this.isArrEmpty(this.rightArmy);
+};
+
+GameEngine.prototype.isArrEmpty = function(arr) {
+    var result = arr.length === 0;
+
+    if (!result) {
+        for (var i = 0; i < arr.length; i++) {
+            if (!arr[i].removeFromWorld) return false;
+        }
+    }
+    return result;
+
+};
+
 
 
 

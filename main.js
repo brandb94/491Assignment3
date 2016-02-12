@@ -57,7 +57,7 @@ Animation.prototype.isDone = function () {
 function StatTrack(game) {
 
     this.name = "Stats";
-    this.stats;
+    this.stats = null;
 
     Entity.call(this, game, 0, 400);
 
@@ -300,7 +300,7 @@ Soldier.prototype.moveTowards = function(enemy) {
     this.velocity.y = (dy / pointDistance) * this.moveSpeed;
 
 
-}
+};
 
 
 
@@ -347,7 +347,10 @@ ASSET_MANAGER.downloadAll(function () {
     var gameEngine = new GameEngine();
     var statTracker = new StatTrack(gameEngine);
    // createArmy(game, "left");
-
+    /*var pauseButton = document.getElementById('pausegame');
+    pauseButton.onclick = function() {
+        gameEngine.pauseGame();
+    };*/
 
     gameEngine.addEntity(statTracker);
     createArmy(gameEngine, "right");
