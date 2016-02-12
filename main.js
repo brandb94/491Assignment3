@@ -343,7 +343,7 @@ ASSET_MANAGER.downloadAll(function () {
     var canvas = document.getElementById('gameWorld');
     var ctx = canvas.getContext('2d');
 
-
+    var pauseButton = document.getElementById('pause');
     var gameEngine = new GameEngine();
     var statTracker = new StatTrack(gameEngine);
    // createArmy(game, "left");
@@ -352,7 +352,14 @@ ASSET_MANAGER.downloadAll(function () {
         gameEngine.pauseGame();
     };*/
 
+
+
     gameEngine.addEntity(statTracker);
+
+    pauseButton.addEventListener('click', function(e) {
+        gameEngine.gameState.PAUSED ^= true;
+    });
+
     createArmy(gameEngine, "right");
     createArmy(gameEngine, "left");
    // var circle = new Circle(gameEngine);

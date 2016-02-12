@@ -82,9 +82,8 @@ GameEngine.prototype.pauseGame = function() {
 GameEngine.prototype.startInput = function () {
     console.log('Starting input');
     var that = this;
-    var canvas = document.getElementById('gameWorld');
 
-    canvas.addEventListener("keydown", function (e) {
+    window.addEventListener("keydown", function (e) {
         console.log(e.keyCode + " key pressed");
         if (e.keyCode === 32) {
             console.log("Pause Called");
