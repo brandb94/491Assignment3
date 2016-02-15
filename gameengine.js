@@ -98,8 +98,8 @@ GameEngine.prototype.startInput = function () {
 
     this.ctx.canvas.addEventListener("click", function(e) {
         if (e.button == 0) that.leftClick = true;
-        console.log("click event fired");
-        that.pauseGame();
+        console.log("click event fired at (" + e.x + "," + e.y + ")");
+      //  that.pauseGame();
         e.preventDefault();
 
     }, false);
@@ -205,6 +205,7 @@ GameEngine.prototype.update = function () {
 };
 
 GameEngine.prototype.loop = function () {
+    console.log("GE: Paused: " + this.gameState.PAUSED + ", Game Over: " + this.gameState.GAMEOVER );
     if (this.checkGameOver()) this.gameState.GAMEOVER = true;
 
     if (!this.gameState.PAUSED && !this.gameState.GAMEOVER) {

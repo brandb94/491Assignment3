@@ -260,7 +260,7 @@ Soldier.prototype.draw = function(ctx) {
     if (this.team === "right") ctx.fillStyle = "#d4f835";
 
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-    ctx.fillText(""+this.health, this.x + this.radius, this.y+ this.radius);
+    ctx.fillText((this.health).toFixed(2), this.x + this.radius, this.y+ this.radius);
     ctx.fill();
 
   //  Entity.draw.call(this);
@@ -308,10 +308,37 @@ function createArmy(game, side) {
     var canvas = document.getElementById('gameWorld');
     var startX;
     if(side === "right") startX = canvas.width - 80; // 40 is soldier radius
-    else  startX = 10;
-    var startY = 10; //Top of canvas
+    else  startX = 30;
+    var startY = 30; //Top of canvas
 
-    for (var i = 0; i < 10; i++) {
+    /*for (var i = 0; i < 10; i++) {
+        var sold = new Soldier(game, startX, startY, side, "grunt");
+        startY += 80; //Soldier height;
+        if (side === "right") {
+            game.rightArmy.push(sold);
+        } else {
+            game.leftArmy.push(sold);
+        }
+
+    }*/
+   // spawnTriangle(startX, startY, game, side);
+    spawnRow(10, startX, game, side);
+
+    var commandX = (side === "right") ? canvas.width - 160 : 80;
+    var commander = new Soldier(game, commandX, canvas.height / 2, side, "commander");
+
+    if (side === "right") game.rightArmy.push(commander);
+    else game.leftArmy.push(commander);
+
+
+}
+
+function spawnRow(numSoldiers, startX, game, side) {
+    var startY = 10;
+    var startX;
+  //  if(side === "right") startX = canvas.width - 80; // 40 is soldier radius
+   // else  startX = 10;
+    for (var i = 0; i < numSoldiers; i++) {
         var sold = new Soldier(game, startX, startY, side, "grunt");
         startY += 80; //Soldier height;
         if (side === "right") {
@@ -321,14 +348,51 @@ function createArmy(game, side) {
         }
 
     }
-    var commandX = (side === "right") ? canvas.width -160 : 80;
-    var commander = new Soldier(game, commandX, canvas.height / 2, side, "commander");
+}
+//TODO make a spawner object that has a reference to soldier info to get rid of magic numbers
+//then add this function to the spawner's prototype
+/**
+ *
+ * @param baseSize - number of soldiers in largest column
+ * @param startX of the top soldier in the largest column
+ * @param startY of the top soldier in the largest column
+ * @param game to add the soldiers to
+ * @param side the soldier belongs to. Determines some of the loop functionality
+ */
+function spawnTriangle(baseSize, startX, startY, game, side) {
+    var currY = startY;
+    var currX = startX;
+    var prevY = startY;
 
-    if (side === "right") game.rightArmy.push(commander);
-    else game.leftArmy.push(commander);
+    console.log("Starting Y: " + startY);
+    for (var i = baseSize; i > 0; i--) {
+        prevY = currY;
+
+        for (var j = 0; j < i; j++) {
+            console.log("adding soldier in row " + i + ", soldier num: " + (j+1) + " Pos: (" + currX +"," +currY + ")");
+            var sold = new Soldier(game, currX, currY, side, "grunt");
+
+            if (side === "left") game.leftArmy.push(sold);
+            if (side === "right") game.rightArmy.push(sold);
+            currY += 40 + 20;
+
+
+        }
+
+        if (side === "left") currX += 50;
+        if (side === "right") currX -= 50;
+
+        console.log("Current Y: " + currY + ", Pass: " + i);
+
+
+        var temp = prevY;
+        currY = temp + 30;
+
+    }
 
 
 }
+
 
 
 var ASSET_MANAGER = new AssetManager();
@@ -360,8 +424,11 @@ ASSET_MANAGER.downloadAll(function () {
         gameEngine.gameState.PAUSED ^= true;
     });
 
-    createArmy(gameEngine, "right");
-    createArmy(gameEngine, "left");
+    //createArmy(gameEngine, "right");
+    spawnTriangle(5, canvas.width - 80, 30, gameEngine, "right");
+
+    spawnTriangle(5, 30, 30, gameEngine, "left");
+   // createArmy(gameEngine, "left");
    // var circle = new Circle(gameEngine);
   //  circle.setIt();
   //  gameEngine.addEntity(circle);
