@@ -126,6 +126,14 @@ GameEngine.prototype.addEntity = function (entity) {
     this.entities.push(entity);
 };
 
+GameEngine.prototype.addSoldier = function (soldier) {
+    console.log("Added Soldier to " + soldier.team);
+
+    if (soldier.team === "left") this.leftArmy.push(soldier);
+    else this.rightArmy.push(soldier);
+
+}
+
 //TODO consider making a function 'addBullet'
 //This approach may end up getting redundant if we end up with more arrays of different entity types
 

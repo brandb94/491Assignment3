@@ -161,9 +161,8 @@ function randomInt(n) {
 
 function Soldier(game, startX, startY, team, type) {
     this.team = team;
-    //this.health = 100;
-   // this.moveSpeed = 30;
-  //  this.radius = 20;
+
+
     this.game = game;
     this.animations = {};
     this.type = type;
@@ -301,6 +300,9 @@ Soldier.prototype.moveTowards = function(enemy) {
 
 
 };
+Soldier.prototype.deepClone = function() {
+    return new Soldier(this.game, 0, 0, this.team, this.type);
+};
 
 
 
@@ -311,46 +313,75 @@ function createArmy(game, side) {
     else  startX = 30;
     var startY = 30; //Top of canvas
 
-    /*for (var i = 0; i < 10; i++) {
-        var sold = new Soldier(game, startX, startY, side, "grunt");
-        startY += 80; //Soldier height;
-        if (side === "right") {
-            game.rightArmy.push(sold);
-        } else {
-            game.leftArmy.push(sold);
-        }
 
-    }*/
    // spawnTriangle(startX, startY, game, side);
-    spawnRow(10, startX, game, side);
+    SPAWNER.spawnRow(10, startX, game, side);
 
     var commandX = (side === "right") ? canvas.width - 160 : 80;
-    var commander = new Soldier(game, commandX, canvas.height / 2, side, "commander");
 
-    if (side === "right") game.rightArmy.push(commander);
-    else game.leftArmy.push(commander);
+    SPAWNER.spawnSoldier(commandX, canvas.height / 2, side, "commander");
+
+
+
+}
+function Spawner(game) {
+    this.game = game;
+
+    this.soldierProto = new Soldier(game, 0, 0, "placeholder", "grunt");
+    this.commanderProto = new Soldier(game, 0, 0, "placeholder", "commander");
+
+
+
 
 
 }
 
-function spawnRow(numSoldiers, startX, game, side) {
+Spawner.prototype.spawnRow = function(numSoldiers, startX, game, side) {
     var startY = 10;
-    var startX;
-  //  if(side === "right") startX = canvas.width - 80; // 40 is soldier radius
-   // else  startX = 10;
+
     for (var i = 0; i < numSoldiers; i++) {
-        var sold = new Soldier(game, startX, startY, side, "grunt");
+
+        this.spawnSoldier(startX, startY, side, "grunt");
+
         startY += 80; //Soldier height;
-        if (side === "right") {
-            game.rightArmy.push(sold);
-        } else {
-            game.leftArmy.push(sold);
-        }
+
+
 
     }
-}
-//TODO make a spawner object that has a reference to soldier info to get rid of magic numbers
-//then add this function to the spawner's prototype
+};
+
+
+
+
+
+Spawner.prototype.spawnSoldier = function(x, y, team, type) {
+    var sold;
+
+    switch(type) {
+        case "grunt":
+            sold = this.soldierProto.deepClone();
+            break;
+        case "commander":
+            sold = this.commanderProto.deepClone();
+            break;
+        default:
+            break;
+    }
+    sold.x = x;
+    sold.y = y;
+    sold.team = team;
+
+
+    this.game.addSoldier(sold);
+
+
+
+};
+
+
+
+
+
 /**
  *
  * @param baseSize - number of soldiers in largest column
@@ -359,7 +390,7 @@ function spawnRow(numSoldiers, startX, game, side) {
  * @param game to add the soldiers to
  * @param side the soldier belongs to. Determines some of the loop functionality
  */
-function spawnTriangle(baseSize, startX, startY, game, side) {
+Spawner.prototype.spawnTriangle = function(baseSize, startX, startY, side) {
     var currY = startY;
     var currX = startX;
     var prevY = startY;
@@ -370,31 +401,32 @@ function spawnTriangle(baseSize, startX, startY, game, side) {
 
         for (var j = 0; j < i; j++) {
             console.log("adding soldier in row " + i + ", soldier num: " + (j+1) + " Pos: (" + currX +"," +currY + ")");
-            var sold = new Soldier(game, currX, currY, side, "grunt");
 
-            if (side === "left") game.leftArmy.push(sold);
-            if (side === "right") game.rightArmy.push(sold);
-            currY += 40 + 20;
+            this.spawnSoldier(currX, currY, side, "grunt");
 
+            currY += 2 * this.soldierProto.radius + this.soldierProto.radius;
 
         }
 
-        if (side === "left") currX += 50;
-        if (side === "right") currX -= 50;
+
+        if (side === "left") currX += this.soldierProto.radius * 2;
+
+        if (side === "right") currX -= this.soldierProto.radius * 2;
+
 
         console.log("Current Y: " + currY + ", Pass: " + i);
 
 
-        var temp = prevY;
-        currY = temp + 30;
+
+        currY = prevY + this.soldierProto.radius * 1.5;
 
     }
 
 
-}
+};
 
 
-
+var SPAWNER;
 var ASSET_MANAGER = new AssetManager();
 
 //ASSET_MANAGER.queueDownload("./img/960px-Blank_Go_board.png");
@@ -423,11 +455,11 @@ ASSET_MANAGER.downloadAll(function () {
     pauseButton.addEventListener('click', function(e) {
         gameEngine.gameState.PAUSED ^= true;
     });
-
+    SPAWNER = new Spawner(gameEngine);
     //createArmy(gameEngine, "right");
-    spawnTriangle(5, canvas.width - 80, 30, gameEngine, "right");
+    SPAWNER.spawnTriangle(5, canvas.width - 80, 30, "right");
 
-    spawnTriangle(5, 30, 30, gameEngine, "left");
+    SPAWNER.spawnTriangle(5, 30, 30,"left");
    // createArmy(gameEngine, "left");
    // var circle = new Circle(gameEngine);
   //  circle.setIt();
