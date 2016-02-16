@@ -175,6 +175,9 @@ function Soldier(game, startX, startY, team, type) {
     this.velocity.x = 0;
     this.velocity.y = 0;
 
+    this.lastAttackTime = -1;
+    this.attackDelay = .1; //seconds
+
     switch(type) {
         case "grunt":
             this.hitChance = 6;
@@ -199,6 +202,18 @@ function Soldier(game, startX, startY, team, type) {
 Soldier.prototype = new Entity();
 Soldier.prototype.constructor = Soldier;
 
+
+Soldier.prototype.canAttack = function() {
+    if (this.lastAttackTime) {
+        var currentTime = Date.now();
+        console.log("Attack Successful");
+        if ((currentTime - this.lastAttackTime) / 1000 >= this.attackDelay) return true;
+
+    }
+
+    return false;
+};
+
 Soldier.prototype.update = function() {
 
     //move
@@ -215,7 +230,7 @@ Soldier.prototype.update = function() {
 
         if (distance(this, this.target) < this.radius + this.target.radius) {
             //close enough to attack
-            this.attack(this.target);
+            if (this.canAttack()) this.attack(this.target);
         } else {
             //Try to close the distance
             this.moveTowards(this.target);
@@ -280,12 +295,16 @@ Soldier.prototype.findClosestEnemy = function(team) {
 };
 
 Soldier.prototype.attack = function(enemy) {
+
+
     var hitOrNah = randomInt(10) + 1;
     if (hitOrNah >= 10 - this.hitChance) {
 
         var damage = randomInt(this.damageMax) + 1;
         enemy.health -= damage;
     }
+    this.lastAttackTime = Date.now();
+
 };
 
 Soldier.prototype.moveTowards = function(enemy) {
@@ -302,6 +321,12 @@ Soldier.prototype.moveTowards = function(enemy) {
 };
 Soldier.prototype.deepClone = function() {
     return new Soldier(this.game, 0, 0, this.team, this.type);
+};
+
+
+Soldier.prototype.victoryCheck = function() {
+    if (this.team === "left") return this.game.isArrEmpty(this.game.rightArmy);
+    else return this.game.isArrEmpty(this.game.leftArmy);
 };
 
 
@@ -330,10 +355,6 @@ function Spawner(game) {
     this.soldierProto = new Soldier(game, 0, 0, "placeholder", "grunt");
     this.commanderProto = new Soldier(game, 0, 0, "placeholder", "commander");
 
-
-
-
-
 }
 
 Spawner.prototype.spawnRow = function(numSoldiers, startX, game, side) {
@@ -349,9 +370,6 @@ Spawner.prototype.spawnRow = function(numSoldiers, startX, game, side) {
 
     }
 };
-
-
-
 
 
 Spawner.prototype.spawnSoldier = function(x, y, team, type) {
@@ -379,11 +397,8 @@ Spawner.prototype.spawnSoldier = function(x, y, team, type) {
 };
 
 
-
-
-
 /**
- *
+ * Spawns some soldiers in a triangle formation. Pointy end facing the opposing team.
  * @param baseSize - number of soldiers in largest column
  * @param startX of the top soldier in the largest column
  * @param startY of the top soldier in the largest column
@@ -424,29 +439,49 @@ Spawner.prototype.spawnTriangle = function(baseSize, startX, startY, side) {
 
 
 };
+/**
+ * Spawns a rectangle formation of soldiers
+ * @param startX
+ * @param startY
+ * @param w idth
+ * @param h eight
+ * @param side
+ */
+Spawner.prototype.spawnRect = function(startX, startY, w, h, side) {
+    var currX = startX;
+    var currY = startY;
+
+    for (var i = 0; i < h; i++) {
+
+        for (var j = 0; j < w; j++) {
+
+            this.spawnSoldier(currX, currY, side, "grunt");
+            currX += this.soldierProto.radius * 2 + this.soldierProto.radius;
+
+        }
+        currX = startX;
+        currY += this.soldierProto.radius * 2 + this.soldierProto.radius;
+    }
+
+
+};
 
 
 var SPAWNER;
 var ASSET_MANAGER = new AssetManager();
 
-//ASSET_MANAGER.queueDownload("./img/960px-Blank_Go_board.png");
-//ASSET_MANAGER.queueDownload("./img/black.png");
-//ASSET_MANAGER.queueDownload("./img/white.png");
+
 ASSET_MANAGER.queueDownload("./img/soldiers.png");
 
 ASSET_MANAGER.downloadAll(function () {
-    console.log("starting up da sheild");
+    console.log("Phasers set to stun");
     var canvas = document.getElementById('gameWorld');
     var ctx = canvas.getContext('2d');
 
     var pauseButton = document.getElementById('pause');
     var gameEngine = new GameEngine();
     var statTracker = new StatTrack(gameEngine);
-   // createArmy(game, "left");
-    /*var pauseButton = document.getElementById('pausegame');
-    pauseButton.onclick = function() {
-        gameEngine.pauseGame();
-    };*/
+
 
 
 
@@ -459,7 +494,8 @@ ASSET_MANAGER.downloadAll(function () {
     //createArmy(gameEngine, "right");
     SPAWNER.spawnTriangle(5, canvas.width - 80, 30, "right");
 
-    SPAWNER.spawnTriangle(5, 30, 30,"left");
+    //SPAWNER.spawnTriangle(5, 30, 30,"left");
+    SPAWNER.spawnRect(30, 30, 5,3, "left");
    // createArmy(gameEngine, "left");
    // var circle = new Circle(gameEngine);
   //  circle.setIt();

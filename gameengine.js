@@ -37,7 +37,7 @@ function GameEngine() {
     this.gameState = {
         PAUSED:false,
         GAMEOVER:false,
-        SPEED:1.0
+        SPEED:1.0 //TODO do something with this
 
     };
 
@@ -229,14 +229,14 @@ GameEngine.prototype.checkGameOver = function() {
 };
 
 GameEngine.prototype.isArrEmpty = function(arr) {
-    var result = arr.length === 0;
+    return arr.length === 0;
 
-    if (!result) {
+    /*if (!result) {
         for (var i = 0; i < arr.length; i++) {
             if (!arr[i].removeFromWorld) return false;
         }
-    }
-    return result;
+    }*/
+   // return result;
 
 };
 
