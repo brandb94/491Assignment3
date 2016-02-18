@@ -56,37 +56,36 @@ Animation.prototype.isDone = function () {
 };
 
 
-function StatTrack(game) {
+function StateTrack(game) {
 
     this.name = "Stats";
     this.stats = null;
+
 
     Entity.call(this, game, 0, 400);
 
 }
 
-StatTrack.prototype = new Entity();
-StatTrack.prototype.constructor = StatTrack;
+StateTrack.prototype = new Entity();
+StateTrack.prototype.constructor = StateTrack;
 
-StatTrack.prototype.update = function(ctx) {
+StateTrack.prototype.setup = function() {
+
+};
+
+StateTrack.prototype.update = function(ctx) {
     this.stats = this.getSoldierStats();
 };
 
-StatTrack.prototype.draw = function(ctx) {
+StateTrack.prototype.draw = function(ctx) {
     var canvas = document.getElementById('gameWorld');
 
     var opacity = 0;
 
-    // for wave counter
 
     ctx.font="15px Courier New";
     ctx.fillStyle = "white";
 
-  //  ctx.fillText("Wave: " + globals.wave, 10, 55);
-
-   // if (globals.player.health > 0) {
-
-    //var armyStats = this.getSoldierStats();
 
 
     ctx.fillText("Left Soldiers remaining: " + this.game.leftArmy.length, 40, 50);
@@ -114,7 +113,7 @@ StatTrack.prototype.draw = function(ctx) {
 
 };
 
-StatTrack.prototype.getSoldierStats = function() {
+StateTrack.prototype.getSoldierStats = function() {
 
     var result = {};
 
@@ -133,7 +132,7 @@ StatTrack.prototype.getSoldierStats = function() {
 
 };
 
-StatTrack.prototype.commanderDead = function(arr) {
+StateTrack.prototype.commanderDead = function(arr) {
     var commandDead = true;
 
     for (var i = 0; i < arr.length; i++) {
@@ -391,7 +390,6 @@ Spawner.prototype.spawnSoldier = function(x, y, team, type) {
     sold.y = y;
     sold.team = team;
 
-
     this.game.addSoldier(sold);
 
 
@@ -424,7 +422,6 @@ Spawner.prototype.spawnTriangle = function(baseSize, startX, startY, side) {
             currY += 2 * this.soldierProto.radius + this.soldierProto.radius;
 
         }
-
 
         if (side === "left") currX += this.soldierProto.radius * 2;
 
@@ -482,7 +479,7 @@ ASSET_MANAGER.downloadAll(function () {
 
     var pauseButton = document.getElementById('pause');
     var gameEngine = new GameEngine();
-    var statTracker = new StatTrack(gameEngine);
+    var statTracker = new StateTrack(gameEngine);
 
 
 
@@ -492,12 +489,17 @@ ASSET_MANAGER.downloadAll(function () {
     pauseButton.addEventListener('click', function(e) {
         gameEngine.gameState.PAUSED ^= true;
     });
+
     SPAWNER = new Spawner(gameEngine);
     //createArmy(gameEngine, "right");
     SPAWNER.spawnTriangle(5, canvas.width - 80, 30, "right");
 
     //SPAWNER.spawnTriangle(5, 30, 30,"left");
     SPAWNER.spawnRect(30, 30, 5,3, "left");
+    SPAWNER.spawnRect(30, 360, 5,3, "left");
+
+
+    SPAWNER.spawnRect(canvas.width - 160, 360, 5,3, "right");
    // createArmy(gameEngine, "left");
    // var circle = new Circle(gameEngine);
   //  circle.setIt();

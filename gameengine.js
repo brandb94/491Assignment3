@@ -35,6 +35,7 @@ Timer.prototype.tick = function () {
 
 function GameEngine() {
     this.gameState = {
+        PREGAME:true,
         PAUSED:false,
         GAMEOVER:false,
         SPEED:1.0 //TODO do something with this
@@ -214,14 +215,21 @@ GameEngine.prototype.update = function () {
 
 GameEngine.prototype.loop = function () {
     console.log("GE: Paused: " + this.gameState.PAUSED + ", Game Over: " + this.gameState.GAMEOVER );
+
+    this.gameState.PREGAME = this.checkGameReady();
     if (this.checkGameOver()) this.gameState.GAMEOVER = true;
 
     if (!this.gameState.PAUSED && !this.gameState.GAMEOVER) {
+
+
         this.clockTick = this.timer.tick();
         this.update();
         this.draw();
     }
     //this.space = null;
+};
+GameEngine.prototype.checkGameReady = function() {
+    return this.leftArmy.length === 30 && this.rightArmy.length === 30;
 };
 
 GameEngine.prototype.checkGameOver = function() {
