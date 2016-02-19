@@ -157,8 +157,8 @@ StateTrack.prototype.getSoldierStats = function() {
 
     var result = {};
 
-    result["leftHit"] = this.game.leftArmy[0].hitChance;
-    result["rightHit"] = this.game.rightArmy[0].hitChance;
+    result["leftHit"] = this.getAverageHit(this.game.leftArmy); //this.game.leftArmy[0].hitChance;
+    result["rightHit"] = this.getAverageHit(this.game.rightArmy); //this.game.rightArmy[0].hitChance;
 
     var leftDead = this.commanderDead(this.game.leftArmy);
     var rightDead = this.commanderDead(this.game.rightArmy);
@@ -171,6 +171,24 @@ StateTrack.prototype.getSoldierStats = function() {
 
 
 };
+
+
+StateTrack.prototype.getAverageHit = function (arr) {
+    var sum = 0;
+    var soldCount = 0;
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i].type === "grunt") {
+            if (arr[i].debuffTime) console.log("I am debuffed, hit chance: " + arr[i].hitChance);
+            sum += arr[i].hitChance;
+            soldCount++;
+        }
+
+    }
+    //console.log("average hit chance : " + sum / soldCount);
+    return (sum / soldCount);
+
+};
+
 /**
  * Checks whether or not a commander has died
  * @param arr
@@ -289,11 +307,13 @@ Soldier.prototype.update = function() {
         if (this.debuffTime) {
 
             var currentTime = Date.now();
-            console.log("Debuff activated at " + (this.debuffTime /1000) + ", current time is " + (currentTime/1000));
-            if ((currentTime - this.debuffTime) / 1000 > 5) {
+           // console.log("Debuff activated at " + (this.debuffTime /1000) + ", current time is " + (currentTime/1000));
+            if ((currentTime - this.debuffTime) / 1000 > 5) { //It's been more than 5 seconds since last debuff
                 this.hitChance = 6;
                 this.debuffTime = null;
                 console.log("Time is up, debuff deactivated.");
+            } else {
+                console.log("Debuff still activated");
             }
 
         }
@@ -344,11 +364,14 @@ Soldier.prototype.die = function() {
         console.log("Commander dead, lowering my team's hitChance");
         for (var i = 0; i < arr.length; i++ ) {
             if (arr[i].type === "grunt") {
+                console.log(arr[i].debuffTime);
+
 
                 if (!arr[i].debuffTime) {
-                    this.hitChance -=3;
-                    console.log("Debuff not set yet, lowering hit chance")
+                    arr[i].hitChance = 3;
+                    console.log("Debuff not set yet, lowering hit chance to " + this.hitChance);
                 }
+
                 arr[i].debuffTime = Date.now();
 
             }
@@ -363,10 +386,18 @@ Soldier.prototype.die = function() {
 
 Soldier.prototype.draw = function(ctx) {
     ctx.beginPath();
+
+   /* if (this.debuffTime) {
+        ctx.fillStyle="pink";
+        ctx.arc(this.x, this.y, this.radius * 1.5, 0, Math.PI * 2, false);
+        ctx.fill();
+    }*/
+
     if (this.team === "left") ctx.fillStyle = "#E3612F";
     if (this.team === "right") ctx.fillStyle = "#d4f835";
 
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    if (this.debuffTime) ctx.arc(this.x, this.y, this.radius / 2, 0, Math.PI * 2, false);
+    else ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
     ctx.fillText((this.health).toFixed(2), this.x + this.radius, this.y+ this.radius);
     ctx.fill();
 
