@@ -220,7 +220,7 @@ GameEngine.prototype.loop = function () {
 
     //this.gameState.PREGAME = this.checkGameReady();
    // if (this.checkGameOver()) this.gameState.GAMEOVER = true;
-
+    if (this.checkGameOver()) this.gameState.PREGAME = true;
     if (!this.gameState.PAUSED && !this.gameState.GAMEOVER) {
 
 
@@ -236,7 +236,7 @@ GameEngine.prototype.checkGameReady = function() {
 };
 
 GameEngine.prototype.checkGameOver = function() {
-  return !this.gameState.PREGAME && (this.isArrEmpty(this.leftArmy) || this.isArrEmpty(this.rightArmy));
+  return this.isArrEmpty(this.leftArmy) || this.isArrEmpty(this.rightArmy);
 };
 
 GameEngine.prototype.isArrEmpty = function(arr) {
@@ -251,6 +251,11 @@ GameEngine.prototype.isArrEmpty = function(arr) {
 
 };
 
+GameEngine.prototype.clearField = function() {
+    this.leftArmy = [];
+    this.rightArmy = [];
+    this.gameState.PREGAME = true;
+};
 
 
 

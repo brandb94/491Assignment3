@@ -62,7 +62,6 @@ function StateTrack(game) {
     this.stats = null;
     this.selectedSide = "left";
     this.selectedType = "grunt";
-    this.spawning = false;
 
     Entity.call(this, game, 0, 400);
 
@@ -134,7 +133,7 @@ StateTrack.prototype.updateControlBoard = function() {
     ctx.fillStyle = "white";
 
     ctx.fillText("" + this.selectedSide + " selected.", canvas.width / 2 - 40, 30);
-    ctx.fillText("" + this.selectedType + " Soldier type selected.", canvas.width /2 - 40, 45);
+    ctx.fillText("" + this.selectedType + " Soldier type selected.", canvas.width /2 - 55, 45);
 
 
 
@@ -235,7 +234,7 @@ Soldier.prototype.constructor = Soldier;
 Soldier.prototype.canAttack = function() {
   //  if (this.lastAttackTime) {
         var currentTime = Date.now();
-        console.log("Attack Successful");
+      //  console.log("Attack Successful");
         if ((currentTime - this.lastAttackTime) / 1000 >= this.attackDelay) return true;
 
    // }
@@ -397,10 +396,10 @@ Spawner.prototype.spawnFormation = function(formation, x, y, side) {
             this.spawnTriangle(5, x, y, side);
             break;
         case "rectangle":
-            this.spawnRect(x, y, 4, 3, side);
+            this.spawnRect(x, y, 5, 3, side);
             break;
         case "row" :
-            this.spawnRow(10, x, this.game, side);
+            this.spawnRow(10, x, y, side);
             break;
         case "single" :
             this.spawnSoldier(x, y, side, "grunt");
@@ -412,14 +411,14 @@ Spawner.prototype.spawnFormation = function(formation, x, y, side) {
 
 };
 
-Spawner.prototype.spawnRow = function(numSoldiers, startX, game, side) {
-    var startY = 10;
+Spawner.prototype.spawnRow = function(numSoldiers, startX, startY, side) {
+   // var startY = 10;
 
     for (var i = 0; i < numSoldiers; i++) {
 
         this.spawnSoldier(startX, startY, side, "grunt");
 
-        startY += 80; //Soldier height;
+        startY += this.soldierProto.radius * 2.5; //Soldier height;
 
 
 
@@ -528,6 +527,7 @@ function assignButtonListeners(statTracker) {
     var row = document.getElementById('rowSelector');
     var single = document.getElementById('singleSelector');
     var start = document.getElementById('startButton');
+    var clear = document.getElementById('clearButton');
 
     leftButton.addEventListener('click', function(e) {
        statTracker.selectedSide = "left";
@@ -554,7 +554,9 @@ function assignButtonListeners(statTracker) {
     start.addEventListener('click', function(e) {
         statTracker.game.gameState.PREGAME ^= true;
     });
-
+    clear.addEventListener('click', function(e) {
+        statTracker.game.clearField();
+    });
 
 
 }
@@ -582,9 +584,7 @@ ASSET_MANAGER.downloadAll(function () {
 
     gameEngine.addEntity(statTracker);
 
-    pauseButton.addEventListener('click', function(e) {
-        gameEngine.gameState.PAUSED ^= true;
-    });
+
 
     SPAWNER = new Spawner(gameEngine);
     //createArmy(gameEngine, "right");

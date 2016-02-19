@@ -47,3 +47,9 @@
 
     background-color: lawngreen;
 }
+
+#clearButton {
+    position: fixed;
+    top: 350px;
+    left:950px;
+}
