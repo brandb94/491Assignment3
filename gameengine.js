@@ -72,7 +72,9 @@ GameEngine.prototype.start = function () {
         requestAnimFrame(gameLoop, that.ctx.canvas);
     })();
 };
-
+/**
+ * Pauses the simulation
+ */
 GameEngine.prototype.pauseGame = function() {
     //Flip pause value
     this.gameState.PAUSED = !this.gameState.PAUSED;
@@ -90,9 +92,7 @@ GameEngine.prototype.startInput = function () {
             console.log("Pause Called");
             that.pauseGame();
 
-            //e.preventDefault();
         }
-//        console.log(e);
         e.preventDefault();
     }, false);
 
@@ -101,8 +101,8 @@ GameEngine.prototype.startInput = function () {
         if (e.button == 0) that.leftClick = true;
 
         that.clickLoc = {x: e.x, y: e.y};
-        console.log("click event fired at (" + e.x + "," + e.y + ")");
-      //  that.pauseGame();
+       // console.log("click event fired at (" + e.x + "," + e.y + ")");
+
         e.preventDefault();
 
     }, false);
@@ -128,7 +128,10 @@ GameEngine.prototype.addEntity = function (entity) {
     console.log('added entity');
     this.entities.push(entity);
 };
-
+/**
+ * Adds a soldier to its respective array
+ * @param soldier
+ */
 GameEngine.prototype.addSoldier = function (soldier) {
     console.log("Added Soldier to " + soldier.team);
 
@@ -137,8 +140,6 @@ GameEngine.prototype.addSoldier = function (soldier) {
 
 };
 
-//TODO consider making a function 'addBullet'
-//This approach may end up getting redundant if we end up with more arrays of different entity types
 
 GameEngine.prototype.draw = function () {
 
@@ -198,17 +199,12 @@ GameEngine.prototype.update = function () {
     this.updateEntitiesIn(this.leftArmy);
     this.updateEntitiesIn(this.rightArmy);
 
-    //update bullets
-
-    //this.updateEntitiesIn(this.bullets);
 
 
     //remove entities and bullets that are donezo
 
     this.removeFinishedFrom(this.entities);
-    //this.removeFinishedFrom(this.bullets);
 
-    //relevant
     this.removeFinishedFrom(this.leftArmy);
     this.removeFinishedFrom(this.rightArmy);
 
@@ -218,23 +214,22 @@ GameEngine.prototype.update = function () {
 GameEngine.prototype.loop = function () {
     console.log("GE: Paused: " + this.gameState.PAUSED + ", Game Over: " + this.gameState.GAMEOVER );
 
-    //this.gameState.PREGAME = this.checkGameReady();
-   // if (this.checkGameOver()) this.gameState.GAMEOVER = true;
+
     if (this.checkGameOver()) this.gameState.PREGAME = true;
-    if (!this.gameState.PAUSED && !this.gameState.GAMEOVER) {
+    if (!this.gameState.PAUSED) {
 
 
         this.clockTick = this.timer.tick();
         this.update();
         this.draw();
-        this.leftClick = null;
     }
-    //this.space = null;
+    this.leftClick = null;
+
 };
 GameEngine.prototype.checkGameReady = function() {
     return this.leftArmy.length !== 0 && this.rightArmy.length !== 0;
 };
-
+/** Checks if the game is over*/
 GameEngine.prototype.checkGameOver = function() {
   return this.isArrEmpty(this.leftArmy) || this.isArrEmpty(this.rightArmy);
 };
@@ -242,15 +237,11 @@ GameEngine.prototype.checkGameOver = function() {
 GameEngine.prototype.isArrEmpty = function(arr) {
     return arr.length === 0;
 
-    /*if (!result) {
-        for (var i = 0; i < arr.length; i++) {
-            if (!arr[i].removeFromWorld) return false;
-        }
-    }*/
-   // return result;
 
 };
-
+/**
+ * Clears the field of the both armies
+ */
 GameEngine.prototype.clearField = function() {
     this.leftArmy = [];
     this.rightArmy = [];

@@ -40,6 +40,13 @@
     left: 950px;
 }
 
+#commanderSelector {
+    position:fixed;
+    top: 300px;
+    left: 950px;
+
+}
+
 #startButton {
     position: fixed;
     top: 390px;
@@ -50,6 +57,6 @@
 
 #clearButton {
     position: fixed;
-    top: 350px;
-    left:950px;
+    top: 390px;
+    left:850px;
 }

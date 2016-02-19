@@ -55,7 +55,12 @@ Animation.prototype.isDone = function () {
     return (this.elapsedTime >= this.totalTime);
 };
 
-
+/**
+ * Keeps track of the state of the game.
+ * Used to display statistics and handle spawning of soldiers
+ * @param game
+ * @constructor
+ */
 function StateTrack(game) {
 
     this.name = "Stats";
@@ -89,7 +94,7 @@ StateTrack.prototype.update = function(ctx) {
 };
 
 StateTrack.prototype.draw = function(ctx) {
-
+    //Don't do this unless the game is started
     if (!this.game.gameState.PREGAME) {
         this.displayStats(ctx);
     }
@@ -100,7 +105,10 @@ StateTrack.prototype.draw = function(ctx) {
         Entity.prototype.draw.call(this);
 
 };
-
+/**
+ * Displays stats about the two armies in the main canvas
+ * @param ctx
+ */
 StateTrack.prototype.displayStats = function(ctx) {
     var canvas = document.getElementById('gameWorld');
 
@@ -121,7 +129,9 @@ StateTrack.prototype.displayStats = function(ctx) {
     ctx.fillText("Right Commander Alive: " + !this.stats.rightDead, canvas.width / 2, 90);
     ctx.fillText("Right Soldiers remaining: " + this.game.rightArmy.length, canvas.width / 2, 50);
 };
-
+/**
+ * Updates the indicators in the control board
+ */
 StateTrack.prototype.updateControlBoard = function() {
     var canvas = document.getElementById('controlBoard');
     var ctx = canvas.getContext('2d');
@@ -132,14 +142,17 @@ StateTrack.prototype.updateControlBoard = function() {
     ctx.font="14px Courier New";
     ctx.fillStyle = "white";
 
-    ctx.fillText("" + this.selectedSide + " selected.", canvas.width / 2 - 40, 30);
+    ctx.fillText("" + this.selectedSide + " selected.", canvas.width / 2 - 55, 30);
     ctx.fillText("" + this.selectedType + " Soldier type selected.", canvas.width /2 - 55, 45);
 
 
 
 };
 
-
+/**
+ * Wraps the stats for soldiers from both armies in an object and returns it
+ * @returns army stats
+ */
 StateTrack.prototype.getSoldierStats = function() {
 
     var result = {};
@@ -158,7 +171,11 @@ StateTrack.prototype.getSoldierStats = function() {
 
 
 };
-
+/**
+ * Checks whether or not a commander has died
+ * @param arr
+ * @returns {boolean}
+ */
 StateTrack.prototype.commanderDead = function(arr) {
     var commandDead = true;
 
@@ -173,7 +190,12 @@ StateTrack.prototype.commanderDead = function(arr) {
 };
 
 // GameBoard code below
-
+/**
+ * Computes the distance between two entities with an x and a y value
+ * @param a
+ * @param b
+ * @returns {number}
+ */
 function distance(a, b) {
     if (a && b) {
         var dx = a.x - b.x;
@@ -181,12 +203,24 @@ function distance(a, b) {
         return Math.sqrt(dx * dx + dy * dy);
     }
 }
-
+/**
+ * Gets a random int between 0 and n
+ * @param n
+ * @returns {number}
+ */
 function randomInt(n) {
     return Math.random() * n;
 }
 
-
+/**
+ * Soldier constructor
+ * @param game
+ * @param startX
+ * @param startY
+ * @param team
+ * @param type
+ * @constructor
+ */
 function Soldier(game, startX, startY, team, type) {
     this.team = team;
 
@@ -230,7 +264,10 @@ function Soldier(game, startX, startY, team, type) {
 Soldier.prototype = new Entity();
 Soldier.prototype.constructor = Soldier;
 
-
+/**
+ * Checks whether or not enough time has passed to attack again
+ * @returns {boolean}
+ */
 Soldier.prototype.canAttack = function() {
   //  if (this.lastAttackTime) {
         var currentTime = Date.now();
@@ -245,7 +282,7 @@ Soldier.prototype.canAttack = function() {
 Soldier.prototype.update = function() {
 
 
-    if (!this.game.gameState.PREGAME) {
+    if (!this.game.gameState.PREGAME) { //none of this behavior should occur unless game started
 
         this.x += this.velocity.x * this.game.clockTick;
         this.y += this.velocity.y * this.game.clockTick;
@@ -277,7 +314,9 @@ Soldier.prototype.update = function() {
     }
     Entity.prototype.update.call(this);
 };
-
+/**
+ * handles death behavior for soldiers
+ */
 Soldier.prototype.die = function() {
 
     if (this.type === "commander") {
@@ -311,7 +350,11 @@ Soldier.prototype.draw = function(ctx) {
 
   //  Entity.draw.call(this);
 };
-
+/**
+ * Finds the closest enemy soldier
+ * @param team
+ * @returns {*}
+ */
 Soldier.prototype.findClosestEnemy = function(team) {
     var arr = (team === "left") ? this.game.rightArmy : this.game.leftArmy;
     var closest = arr[0];
@@ -325,7 +368,10 @@ Soldier.prototype.findClosestEnemy = function(team) {
     }
     return closest;
 };
-
+/**
+ * Attacks a given enemy
+ * @param enemy
+ */
 Soldier.prototype.attack = function(enemy) {
 
 
@@ -338,7 +384,11 @@ Soldier.prototype.attack = function(enemy) {
     this.lastAttackTime = Date.now();
 
 };
-
+/**
+ * Changes the direction of this soldier's movement
+ * based on its target's position
+ * @param enemy
+ */
 Soldier.prototype.moveTowards = function(enemy) {
 
     var dx = enemy.x - this.x;
@@ -351,36 +401,20 @@ Soldier.prototype.moveTowards = function(enemy) {
 
 
 };
+/**
+ * creates a clone of this soldier
+ * @returns {Soldier}
+ */
 Soldier.prototype.deepClone = function() {
     return new Soldier(this.game, 0, 0, this.team, this.type);
 };
 
 
-Soldier.prototype.victoryCheck = function() {
-    if (this.team === "left") return this.game.isArrEmpty(this.game.rightArmy);
-    else return this.game.isArrEmpty(this.game.leftArmy);
-};
-
-
-
-function createArmy(game, side) {
-    var canvas = document.getElementById('gameWorld');
-    var startX;
-    if(side === "right") startX = canvas.width - 80; // 40 is soldier radius
-    else  startX = 30;
-    var startY = 30; //Top of canvas
-
-
-   // spawnTriangle(startX, startY, game, side);
-    SPAWNER.spawnRow(10, startX, game, side);
-
-    var commandX = (side === "right") ? canvas.width - 160 : 80;
-
-    SPAWNER.spawnSoldier(commandX, canvas.height / 2, side, "commander");
-
-
-
-}
+/**
+ * Spawner constructor
+ * @param game
+ * @constructor
+ */
 function Spawner(game) {
     this.game = game;
 
@@ -388,7 +422,13 @@ function Spawner(game) {
     this.commanderProto = new Soldier(game, 0, 0, "placeholder", "commander");
 
 }
-
+/**
+ * Spawns a given formation
+ * @param formation
+ * @param x
+ * @param y
+ * @param side
+ */
 Spawner.prototype.spawnFormation = function(formation, x, y, side) {
 
     switch (formation) {
@@ -404,13 +444,21 @@ Spawner.prototype.spawnFormation = function(formation, x, y, side) {
         case "single" :
             this.spawnSoldier(x, y, side, "grunt");
             break;
+        case "commander" :
+            this.spawnSoldier(x, y, side, "commander");
         default:
             break;
     }
 
 
 };
-
+/**
+ * Spawns a row of soldiers at a given location
+ * @param numSoldiers
+ * @param startX
+ * @param startY
+ * @param side
+ */
 Spawner.prototype.spawnRow = function(numSoldiers, startX, startY, side) {
    // var startY = 10;
 
@@ -425,7 +473,13 @@ Spawner.prototype.spawnRow = function(numSoldiers, startX, startY, side) {
     }
 };
 
-
+/**
+ * Spawns a single soldier. Used in most formation functions
+ * @param x
+ * @param y
+ * @param team
+ * @param type
+ */
 Spawner.prototype.spawnSoldier = function(x, y, team, type) {
     var sold;
 
@@ -518,7 +572,10 @@ Spawner.prototype.spawnRect = function(startX, startY, w, h, side) {
 
 };
 
-
+/**
+ * Assigns listeners to all of the buttons
+ * @param statTracker
+ */
 function assignButtonListeners(statTracker) {
     var leftButton = document.getElementById('leftSelector');
     var rightButton = document.getElementById('rightSelector');
@@ -526,42 +583,46 @@ function assignButtonListeners(statTracker) {
     var rectangle = document.getElementById('rectangleSelector');
     var row = document.getElementById('rowSelector');
     var single = document.getElementById('singleSelector');
+    var commander = document.getElementById('commanderSelector');
     var start = document.getElementById('startButton');
     var clear = document.getElementById('clearButton');
 
-    leftButton.addEventListener('click', function(e) {
+    leftButton.addEventListener('click', function() {
        statTracker.selectedSide = "left";
     });
 
-    rightButton.addEventListener('click', function(e) {
+    rightButton.addEventListener('click', function() {
         statTracker.selectedSide = "right";
     });
 
 
-    triangle.addEventListener('click', function(e) {
+    triangle.addEventListener('click', function() {
         statTracker.selectedType = "triangle";
     });
 
-    rectangle.addEventListener('click', function(e) {
+    rectangle.addEventListener('click', function() {
         statTracker.selectedType = "rectangle";
     });
-    row.addEventListener('click', function(e) {
+    row.addEventListener('click', function() {
         statTracker.selectedType = "row";
     });
-    single.addEventListener('click', function(e) {
+    single.addEventListener('click', function() {
         statTracker.selectedType = "single";
     });
-    start.addEventListener('click', function(e) {
+    commander.addEventListener('click', function() {
+        statTracker.selectedSide = "commander";
+    });
+    start.addEventListener('click', function() {
         statTracker.game.gameState.PREGAME ^= true;
     });
-    clear.addEventListener('click', function(e) {
+    clear.addEventListener('click', function() {
         statTracker.game.clearField();
     });
 
 
 }
 
-
+/** Spawner object used everywhere a zombie is spawned*/
 var SPAWNER;
 var ASSET_MANAGER = new AssetManager();
 
@@ -575,35 +636,19 @@ ASSET_MANAGER.downloadAll(function () {
 
     var pauseButton = document.getElementById('pause');
     var gameEngine = new GameEngine();
-    var statTracker = new StateTrack(gameEngine);
+    var stateTracker = new StateTrack(gameEngine);
 
-    assignButtonListeners(statTracker);
-
-
+    assignButtonListeners(stateTracker);
 
 
-    gameEngine.addEntity(statTracker);
+
+
+    gameEngine.addEntity(stateTracker);
 
 
 
     SPAWNER = new Spawner(gameEngine);
-    //createArmy(gameEngine, "right");
-   // SPAWNER.spawnTriangle(5, canvas.width - 80, 30, "right");
 
-   // SPAWNER.spawnTriangle(5, 30, 30,"left");
-   // SPAWNER.spawnRect(30, 30, 5,3, "left");
-  //  SPAWNER.spawnRect(30, 360, 5,3, "left");
-
-
-   // SPAWNER.spawnRect(canvas.width - 160, 360, 5,3, "right");
-   // createArmy(gameEngine, "left");
-   // var circle = new Circle(gameEngine);
-  //  circle.setIt();
-  //  gameEngine.addEntity(circle);
-   /* for (var i = 0; i < 12; i++) {
-        circle = new Circle(gameEngine);
-        gameEngine.addEntity(circle);
-    }*/
     gameEngine.init(ctx);
     gameEngine.start();
 });
