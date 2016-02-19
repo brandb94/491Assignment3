@@ -212,7 +212,7 @@ GameEngine.prototype.update = function () {
 };
 
 GameEngine.prototype.loop = function () {
-    console.log("GE: Paused: " + this.gameState.PAUSED + ", Game Over: " + this.gameState.GAMEOVER );
+   // console.log("GE: Paused: " + this.gameState.PAUSED + ", Game Over: " + this.gameState.GAMEOVER );
 
 
     if (this.checkGameOver()) this.gameState.PREGAME = true;

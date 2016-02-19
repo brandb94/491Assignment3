@@ -136,7 +136,7 @@ StateTrack.prototype.updateControlBoard = function() {
     var canvas = document.getElementById('controlBoard');
     var ctx = canvas.getContext('2d');
 
-    console.log("updating control board");
+    //console.log("updating control board");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.font="14px Courier New";
@@ -247,6 +247,7 @@ function Soldier(game, startX, startY, team, type) {
             this.damageMax = 30;
             this.health = 100;
             this.moveSpeed = 30;
+            this.debuffTime = null;
             break;
         case "commander":
             this.hitChance = 8;
@@ -283,6 +284,19 @@ Soldier.prototype.update = function() {
 
 
     if (!this.game.gameState.PREGAME) { //none of this behavior should occur unless game started
+
+
+        if (this.debuffTime) {
+
+            var currentTime = Date.now();
+            console.log("Debuff activated at " + (this.debuffTime /1000) + ", current time is " + (currentTime/1000));
+            if ((currentTime - this.debuffTime) / 1000 > 5) {
+                this.hitChance = 6;
+                this.debuffTime = null;
+                console.log("Time is up, debuff deactivated.");
+            }
+
+        }
 
         this.x += this.velocity.x * this.game.clockTick;
         this.y += this.velocity.y * this.game.clockTick;
@@ -329,7 +343,15 @@ Soldier.prototype.die = function() {
 
         console.log("Commander dead, lowering my team's hitChance");
         for (var i = 0; i < arr.length; i++ ) {
-            arr[i].hitChance -= 3;
+            if (arr[i].type === "grunt") {
+
+                if (!arr[i].debuffTime) {
+                    this.hitChance -=3;
+                    console.log("Debuff not set yet, lowering hit chance")
+                }
+                arr[i].debuffTime = Date.now();
+
+            }
         }
 
     }
@@ -348,7 +370,6 @@ Soldier.prototype.draw = function(ctx) {
     ctx.fillText((this.health).toFixed(2), this.x + this.radius, this.y+ this.radius);
     ctx.fill();
 
-  //  Entity.draw.call(this);
 };
 /**
  * Finds the closest enemy soldier
@@ -610,7 +631,7 @@ function assignButtonListeners(statTracker) {
         statTracker.selectedType = "single";
     });
     commander.addEventListener('click', function() {
-        statTracker.selectedSide = "commander";
+        statTracker.selectedType = "commander";
     });
     start.addEventListener('click', function() {
         statTracker.game.gameState.PREGAME ^= true;
