@@ -60,7 +60,9 @@ function StateTrack(game) {
 
     this.name = "Stats";
     this.stats = null;
-
+    this.selectedSide = "left";
+    this.selectedType = "grunt";
+    this.spawning = false;
 
     Entity.call(this, game, 0, 400);
 
@@ -74,10 +76,33 @@ StateTrack.prototype.setup = function() {
 };
 
 StateTrack.prototype.update = function(ctx) {
-    this.stats = this.getSoldierStats();
+
+
+    if (!this.game.gameState.PREGAME) this.stats = this.getSoldierStats();
+
+    if (this.game.leftClick) {
+        var coords = this.game.clickLoc;
+        SPAWNER.spawnFormation(this.selectedType, coords.x, coords.y, this.selectedSide);
+    }
+
+
+    Entity.prototype.update.call(this);
 };
 
 StateTrack.prototype.draw = function(ctx) {
+
+    if (!this.game.gameState.PREGAME) {
+        this.displayStats(ctx);
+    }
+
+        this.updateControlBoard();
+
+
+        Entity.prototype.draw.call(this);
+
+};
+
+StateTrack.prototype.displayStats = function(ctx) {
     var canvas = document.getElementById('gameWorld');
 
     var opacity = 0;
@@ -96,22 +121,25 @@ StateTrack.prototype.draw = function(ctx) {
     ctx.fillText("Right Soldier Hit Chance: " + (this.stats.rightHit * 10) + "%", canvas.width / 2, 70);
     ctx.fillText("Right Commander Alive: " + !this.stats.rightDead, canvas.width / 2, 90);
     ctx.fillText("Right Soldiers remaining: " + this.game.rightArmy.length, canvas.width / 2, 50);
+};
 
-        // for blood - we don't need this if you guys don't like it
-        // decrease the first hardcoded number to lower threshold
-        //opacity += .3 - (globals.player.health / 100);
-        // for testing numbers:
-        // this.game.ctx.fillText(opacity, 10, 100);
-      //  ctx.fillStyle = "rgba(195, 0, 0, " + opacity + ")";
-       // ctx.fillRect(0,0, canvas.width, canvas.height);
-   // } else {
-      //  ctx.fillStyle = "rgba(195, 0, 0, " + .5 + ")";
-      //  ctx.fillRect(0,0, canvas.width, canvas.height);
-     //   ctx.fillStyle = "white";
-     //   ctx.font="50px Courier New";
-      //  ctx.fillText("YOU DEAD HOMIE rip", 125, canvas.height / 2);
+StateTrack.prototype.updateControlBoard = function() {
+    var canvas = document.getElementById('controlBoard');
+    var ctx = canvas.getContext('2d');
+
+    console.log("updating control board");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.font="14px Courier New";
+    ctx.fillStyle = "white";
+
+    ctx.fillText("" + this.selectedSide + " selected.", canvas.width / 2 - 40, 30);
+    ctx.fillText("" + this.selectedType + " Soldier type selected.", canvas.width /2 - 40, 45);
+
+
 
 };
+
 
 StateTrack.prototype.getSoldierStats = function() {
 
@@ -205,45 +233,49 @@ Soldier.prototype.constructor = Soldier;
 
 
 Soldier.prototype.canAttack = function() {
-    if (this.lastAttackTime) {
+  //  if (this.lastAttackTime) {
         var currentTime = Date.now();
         console.log("Attack Successful");
         if ((currentTime - this.lastAttackTime) / 1000 >= this.attackDelay) return true;
 
-    }
+   // }
 
     return false;
 };
 
 Soldier.prototype.update = function() {
 
-    //move
-    this.x += this.velocity.x * this.game.clockTick;
-    this.y += this.velocity.y * this.game.clockTick;
 
-    if (!this.target) {
-        var enemy = this.findClosestEnemy(this.team);
-        if (enemy) this.target = enemy;
-    }
+    if (!this.game.gameState.PREGAME) {
 
-    if (this.target) {
+        this.x += this.velocity.x * this.game.clockTick;
+        this.y += this.velocity.y * this.game.clockTick;
 
 
-        if (distance(this, this.target) < this.radius + this.target.radius) {
-            //close enough to attack
-            if (this.canAttack()) this.attack(this.target);
-        } else {
-            //Try to close the distance
-            this.moveTowards(this.target);
+        if (!this.target) {
+            var enemy = this.findClosestEnemy(this.team);
+            if (enemy) this.target = enemy;
+        }
+
+        if (this.target) {
+
+
+            if (distance(this, this.target) < this.radius + this.target.radius) {
+                //close enough to attack
+                if (this.canAttack()) this.attack(this.target);
+
+            } else {
+                //Try to close the distance
+                this.moveTowards(this.target);
+
+            }
+            if (this.target.health <= 0) this.target = null;
 
         }
-        if (this.target.health <= 0) this.target = null;
+
+        if (this.health <= 0) this.die();
 
     }
-
-    if (this.health <= 0) this.die();
-
-
     Entity.prototype.update.call(this);
 };
 
@@ -358,6 +390,28 @@ function Spawner(game) {
 
 }
 
+Spawner.prototype.spawnFormation = function(formation, x, y, side) {
+
+    switch (formation) {
+        case "triangle":
+            this.spawnTriangle(5, x, y, side);
+            break;
+        case "rectangle":
+            this.spawnRect(x, y, 4, 3, side);
+            break;
+        case "row" :
+            this.spawnRow(10, x, this.game, side);
+            break;
+        case "single" :
+            this.spawnSoldier(x, y, side, "grunt");
+            break;
+        default:
+            break;
+    }
+
+
+};
+
 Spawner.prototype.spawnRow = function(numSoldiers, startX, game, side) {
     var startY = 10;
 
@@ -455,8 +509,8 @@ Spawner.prototype.spawnRect = function(startX, startY, w, h, side) {
         for (var j = 0; j < w; j++) {
 
             this.spawnSoldier(currX, currY, side, "grunt");
-            currX += this.soldierProto.radius * 2 + this.soldierProto.radius;
-
+            if (side === "left") currX += this.soldierProto.radius * 2 + this.soldierProto.radius;
+            if (side === "right") currX -= this.soldierProto.radius * 2 + this.soldierProto.radius;
         }
         currX = startX;
         currY += this.soldierProto.radius * 2 + this.soldierProto.radius;
@@ -464,6 +518,46 @@ Spawner.prototype.spawnRect = function(startX, startY, w, h, side) {
 
 
 };
+
+
+function assignButtonListeners(statTracker) {
+    var leftButton = document.getElementById('leftSelector');
+    var rightButton = document.getElementById('rightSelector');
+    var triangle = document.getElementById('triangleSelector');
+    var rectangle = document.getElementById('rectangleSelector');
+    var row = document.getElementById('rowSelector');
+    var single = document.getElementById('singleSelector');
+    var start = document.getElementById('startButton');
+
+    leftButton.addEventListener('click', function(e) {
+       statTracker.selectedSide = "left";
+    });
+
+    rightButton.addEventListener('click', function(e) {
+        statTracker.selectedSide = "right";
+    });
+
+
+    triangle.addEventListener('click', function(e) {
+        statTracker.selectedType = "triangle";
+    });
+
+    rectangle.addEventListener('click', function(e) {
+        statTracker.selectedType = "rectangle";
+    });
+    row.addEventListener('click', function(e) {
+        statTracker.selectedType = "row";
+    });
+    single.addEventListener('click', function(e) {
+        statTracker.selectedType = "single";
+    });
+    start.addEventListener('click', function(e) {
+        statTracker.game.gameState.PREGAME ^= true;
+    });
+
+
+
+}
 
 
 var SPAWNER;
@@ -481,6 +575,8 @@ ASSET_MANAGER.downloadAll(function () {
     var gameEngine = new GameEngine();
     var statTracker = new StateTrack(gameEngine);
 
+    assignButtonListeners(statTracker);
+
 
 
 
@@ -492,14 +588,14 @@ ASSET_MANAGER.downloadAll(function () {
 
     SPAWNER = new Spawner(gameEngine);
     //createArmy(gameEngine, "right");
-    SPAWNER.spawnTriangle(5, canvas.width - 80, 30, "right");
+   // SPAWNER.spawnTriangle(5, canvas.width - 80, 30, "right");
 
-    //SPAWNER.spawnTriangle(5, 30, 30,"left");
-    SPAWNER.spawnRect(30, 30, 5,3, "left");
-    SPAWNER.spawnRect(30, 360, 5,3, "left");
+   // SPAWNER.spawnTriangle(5, 30, 30,"left");
+   // SPAWNER.spawnRect(30, 30, 5,3, "left");
+  //  SPAWNER.spawnRect(30, 360, 5,3, "left");
 
 
-    SPAWNER.spawnRect(canvas.width - 160, 360, 5,3, "right");
+   // SPAWNER.spawnRect(canvas.width - 160, 360, 5,3, "right");
    // createArmy(gameEngine, "left");
    // var circle = new Circle(gameEngine);
   //  circle.setIt();

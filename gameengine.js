@@ -99,6 +99,8 @@ GameEngine.prototype.startInput = function () {
 
     this.ctx.canvas.addEventListener("click", function(e) {
         if (e.button == 0) that.leftClick = true;
+
+        that.clickLoc = {x: e.x, y: e.y};
         console.log("click event fired at (" + e.x + "," + e.y + ")");
       //  that.pauseGame();
         e.preventDefault();
@@ -133,7 +135,7 @@ GameEngine.prototype.addSoldier = function (soldier) {
     if (soldier.team === "left") this.leftArmy.push(soldier);
     else this.rightArmy.push(soldier);
 
-}
+};
 
 //TODO consider making a function 'addBullet'
 //This approach may end up getting redundant if we end up with more arrays of different entity types
@@ -216,8 +218,8 @@ GameEngine.prototype.update = function () {
 GameEngine.prototype.loop = function () {
     console.log("GE: Paused: " + this.gameState.PAUSED + ", Game Over: " + this.gameState.GAMEOVER );
 
-    this.gameState.PREGAME = this.checkGameReady();
-    if (this.checkGameOver()) this.gameState.GAMEOVER = true;
+    //this.gameState.PREGAME = this.checkGameReady();
+   // if (this.checkGameOver()) this.gameState.GAMEOVER = true;
 
     if (!this.gameState.PAUSED && !this.gameState.GAMEOVER) {
 
@@ -225,15 +227,16 @@ GameEngine.prototype.loop = function () {
         this.clockTick = this.timer.tick();
         this.update();
         this.draw();
+        this.leftClick = null;
     }
     //this.space = null;
 };
 GameEngine.prototype.checkGameReady = function() {
-    return this.leftArmy.length === 30 && this.rightArmy.length === 30;
+    return this.leftArmy.length !== 0 && this.rightArmy.length !== 0;
 };
 
 GameEngine.prototype.checkGameOver = function() {
-  return this.isArrEmpty(this.leftArmy) || this.isArrEmpty(this.rightArmy);
+  return !this.gameState.PREGAME && (this.isArrEmpty(this.leftArmy) || this.isArrEmpty(this.rightArmy));
 };
 
 GameEngine.prototype.isArrEmpty = function(arr) {

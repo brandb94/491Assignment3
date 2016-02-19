@@ -1,12 +1,49 @@
-.button {
-    border: 2px solid #03ecd3;
-    margin: auto;
-    padding-top: 0px;
-    height: 16px;
-    width: 60px;
-    font-family:Arial;
-    color: white;
-    background-color: blue;
-    display:inline-block;
-    text-align:center;
+#leftSelector {
+    position: fixed;
+    top: 100px;
+    left: 850px;
+}
+#rightSelector {
+    position: fixed;
+    top: 100px;
+    left: 1050px;
+}
+
+
+#controlBoard {
+    position: fixed;
+    /*top: -400px;*/
+
+}
+
+#triangleSelector {
+    position: fixed;
+    top: 180px;
+    left: 950px;
+}
+
+#rectangleSelector {
+    position: fixed;
+    top: 210px;
+    left: 950px;
+}
+
+#rowSelector {
+    position: fixed;
+    top: 240px;
+    left: 950px;
+}
+
+#singleSelector {
+    position: fixed;
+    top: 270px;
+    left: 950px;
+}
+
+#startButton {
+    position: fixed;
+    top: 390px;
+    left: 950px;
+
+    background-color: lawngreen;
 }
