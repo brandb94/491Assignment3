@@ -1,5 +1,11 @@
 /**@author Brandon Bell @ version ???.0 */
 
+globals = {
+    leftDead:  0,
+    rightDead: 0
+};
+
+
 function Animation(spriteSheet, startX, startY, frameWidth, frameHeight, frameDuration, frames, loop, reverse) {
     this.spriteSheet = spriteSheet;
     this.startX = startX;
@@ -68,6 +74,8 @@ function StateTrack(game) {
     this.selectedSide = "left";
     this.selectedType = "grunt";
 
+
+
     Entity.call(this, game, 0, 400);
 
 }
@@ -97,6 +105,8 @@ StateTrack.prototype.draw = function(ctx) {
     //Don't do this unless the game is started
     if (!this.game.gameState.PREGAME) {
         this.displayStats(ctx);
+    } else {
+        this.displayPostGameStats(ctx);
     }
 
         this.updateControlBoard();
@@ -129,6 +139,18 @@ StateTrack.prototype.displayStats = function(ctx) {
     ctx.fillText("Right Commander Alive: " + !this.stats.rightDead, canvas.width / 2, 90);
     ctx.fillText("Right Soldiers remaining: " + this.game.rightArmy.length, canvas.width / 2, 50);
 };
+
+StateTrack.prototype.displayPostGameStats =function(ctx) {
+    ctx.font="15px Courier New";
+    ctx.fillStyle = "white";
+
+    ctx.fillText("Left Soldiers Killed " + globals.leftDead, 40, 50);
+    ctx.fillText("Right Soldiers Killed: " + globals.rightDead, ctx.canvas.width / 2, 50);
+
+    ctx.fillText("Add more soldiers to the field and hit the start button to continue.", (ctx.canvas.width / 2) - 270, 100);
+
+};
+
 /**
  * Updates the indicators in the control board
  */
@@ -353,13 +375,22 @@ Soldier.prototype.update = function() {
  */
 Soldier.prototype.die = function() {
 
+    if (this.team === "left") globals.leftDead++;
+    if (this.team === "right") globals.rightDead++;
+
     if (this.type === "commander") {
 
         //My team is demoralized, lower their hit chance
         //var arr = (this.team === "left") ? this.game.leftArmy : this.game.rightArmy;
         var arr;
-        if (this.team === "left") arr = this.game.leftArmy;
-        else arr = this.game.rightArmy;
+        if (this.team === "left") {
+            arr = this.game.leftArmy;
+            //globals.leftDead++;
+        }
+        else {
+            arr = this.game.rightArmy;
+          //  globals.rightDead++;
+        }
 
         console.log("Commander dead, lowering my team's hitChance");
         for (var i = 0; i < arr.length; i++ ) {
@@ -378,6 +409,7 @@ Soldier.prototype.die = function() {
         }
 
     }
+
 
 
 
