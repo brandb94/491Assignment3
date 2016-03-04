@@ -94,8 +94,11 @@ GameEngine.prototype.loadGame = function() {
 
 
 GameEngine.prototype.onLoad = function(data) {
+    this.leftArmy = [];
+    this.rightArmy = [];
+
     var test = JSON.parse(data);
-    console.log("Game engine onLoad called: " + data);
+    if (globals.debug) console.log("Game engine onLoad called: " + data);
 
     //TODO play around in here with data to see what the types are/should be
     //var parseMe = "'" + data + "'";
@@ -107,11 +110,6 @@ GameEngine.prototype.onLoad = function(data) {
     this.armyFromSerial(leftArmy);
     this.armyFromSerial(rightArmy);
 
-
-    for (var i = 0; i < this.leftArmy.length; i++) {
-        console.log(this.leftArmy[i].type);
-        console.log(this.leftArmy[i].hasOwnProperty('update'));
-    }
 
  //   this.injectIntoArray(this.leftArmy);
    // this.injectIntoArray(this.rightArmy);
@@ -139,7 +137,7 @@ GameEngine.prototype.armyFromSerial = function(army) {
 
     for (var i = 0; i < army.length; i++) {
         var current = army[i];
-        console.log("current soldier from serial" + current);
+        if (globals.debug) console.log("current soldier from serial" + current);
 
         var soldier = this.soldierFromCopy(current);
 
@@ -156,8 +154,7 @@ GameEngine.prototype.soldierFromCopy = function(copy) {
     soldier.health =         copy["health"];
     soldier.lastAttackTime = copy["lastAttackTime"];
     soldier.attackDelay =    copy["attackDelay"];
-   // soldier.velocity.x = copy.velocity.x";
-    //soldier.velocity.y = copy.velocity.y";
+
     soldier.debuffTime =     copy["debuffTime"];
     soldier.hitChance =      copy["hitChance"];
     soldier.radius =         copy["radius"];
@@ -217,7 +214,7 @@ GameEngine.prototype.addEntity = function (entity) {
  * @param soldier
  */
 GameEngine.prototype.addSoldier = function (soldier) {
-    console.log("Added Soldier to " + soldier.team);
+    if (globals.debug) console.log("Added Soldier to " + soldier.team);
 
     if (soldier.team === "left") this.leftArmy.push(soldier);
     else this.rightArmy.push(soldier);

@@ -61,9 +61,15 @@
     left:850px;
 }
 
+#resetStats {
+    position: fixed;
+    top: 362px;
+    left: 850px;
+}
+
 #saveButton {
     position: fixed;
-    top: 355px;
+    top: 362px;
     left: 1100px;
 }
 

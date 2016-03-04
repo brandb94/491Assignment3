@@ -2,7 +2,8 @@
 var socket = io.connect("http://76.28.150.193:8888");
 globals = {
     leftDead:  0,
-    rightDead: 0
+    rightDead: 0,
+    debug: false
 };
 
 
@@ -636,12 +637,12 @@ Spawner.prototype.spawnTriangle = function(baseSize, startX, startY, side) {
     var currX = startX;
     var prevY = startY;
 
-    console.log("Starting Y: " + startY);
+   // console.log("Starting Y: " + startY);
     for (var i = baseSize; i > 0; i--) {
         prevY = currY;
 
         for (var j = 0; j < i; j++) {
-            console.log("adding soldier in row " + i + ", soldier num: " + (j+1) + " Pos: (" + currX +"," +currY + ")");
+            //console.log("adding soldier in row " + i + ", soldier num: " + (j+1) + " Pos: (" + currX +"," +currY + ")");
 
             this.spawnSoldier(currX, currY, side, "grunt");
 
@@ -654,7 +655,7 @@ Spawner.prototype.spawnTriangle = function(baseSize, startX, startY, side) {
         if (side === "right") currX -= this.soldierProto.radius * 2;
 
 
-        console.log("Current Y: " + currY + ", Pass: " + i);
+       // console.log("Current Y: " + currY + ", Pass: " + i);
 
 
 
@@ -704,7 +705,9 @@ function assignButtonListeners(statTracker) {
     var single = document.getElementById('singleSelector');
     var commander = document.getElementById('commanderSelector');
     var start = document.getElementById('startButton');
+
     var clear = document.getElementById('clearButton');
+    var reset = document.getElementById('resetStats');
 
     var save = document.getElementById('saveButton');
     var load = document.getElementById('loadButton');
@@ -741,6 +744,12 @@ function assignButtonListeners(statTracker) {
     clear.addEventListener('click', function() {
         statTracker.game.clearField();
     });
+
+    reset.addEventListener('click', function() {
+        globals.leftDead = 0;
+        globals.rightDead = 0;
+    });
+
 
     save.addEventListener('click', function() {
         statTracker.game.saveGame();
