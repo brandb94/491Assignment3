@@ -60,3 +60,15 @@
     top: 390px;
     left:850px;
 }
+
+#saveButton {
+    position: fixed;
+    top: 355px;
+    left: 1100px;
+}
+
+#loadButton {
+    position: fixed;
+    top: 390px;
+    left: 1100px;
+}

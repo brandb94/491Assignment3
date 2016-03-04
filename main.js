@@ -1,5 +1,5 @@
 /**@author Brandon Bell @ version ???.0 */
-
+var socket = io.connect("http://76.28.150.193:8888");
 globals = {
     leftDead:  0,
     rightDead: 0
@@ -305,6 +305,38 @@ function Soldier(game, startX, startY, team, type) {
 Soldier.prototype = new Entity();
 Soldier.prototype.constructor = Soldier;
 
+
+Soldier.prototype.carbonCopy = function() {
+
+    //var copy = new Soldier(this.game, 0, 0, this.team, this.type);
+
+    //copy.prototype = new Entity();
+    //copy.prototype.constructor = Soldier; //TODO wai
+
+    //copy.game = null;
+    var copy = {};
+
+    copy.team = this.team;
+    copy.type = this.type;
+    copy.health = this.health;
+    copy.lastAttackTime = this.lastAttackTime;
+    copy.attackDelay = this.attackDelay;
+    //copy.velocity.x = this.velocity.x;
+   // copy.velocity.y = this.velocity.y;
+    copy.debuffTime = this.debuffTime;
+    copy.hitChance = this.hitChance;
+    copy.radius = this.radius; //TODO remove if this gives you trouble, default radius is too bad
+    copy.x = this.x;
+    copy.y = this.y;
+
+    //console.log("copy created, has update function? " + copy.prototype.hasOwnProperty('update'));
+
+    return copy;
+
+
+};
+
+
 /**
  * Checks whether or not enough time has passed to attack again
  * @returns {boolean}
@@ -494,6 +526,9 @@ Soldier.prototype.deepClone = function() {
 };
 
 
+
+
+
 /**
  * Spawner constructor
  * @param game
@@ -671,6 +706,10 @@ function assignButtonListeners(statTracker) {
     var start = document.getElementById('startButton');
     var clear = document.getElementById('clearButton');
 
+    var save = document.getElementById('saveButton');
+    var load = document.getElementById('loadButton');
+
+
     leftButton.addEventListener('click', function() {
        statTracker.selectedSide = "left";
     });
@@ -703,6 +742,13 @@ function assignButtonListeners(statTracker) {
         statTracker.game.clearField();
     });
 
+    save.addEventListener('click', function() {
+        statTracker.game.saveGame();
+    });
+
+    load.addEventListener('click', function() {
+        statTracker.game.loadGame();
+    });
 
 }
 
@@ -729,6 +775,13 @@ ASSET_MANAGER.downloadAll(function () {
 
     gameEngine.addEntity(stateTracker);
 
+    //Define load behavior
+    socket.on("load", function (data) {
+        //console.log("Straight from the sauce: " + typeof(data) );
+       // console.log("Data has army property: " + data.hasOwnProperty('leftDead'));
+        console.log("Data received from server: " + data);
+        gameEngine.onLoad(data.data);
+    });
 
 
     SPAWNER = new Spawner(gameEngine);

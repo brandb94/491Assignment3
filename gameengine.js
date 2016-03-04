@@ -80,7 +80,91 @@ GameEngine.prototype.pauseGame = function() {
     this.gameState.PAUSED = !this.gameState.PAUSED;
 };
 
+GameEngine.prototype.saveGame = function() {
+    saveState(this);
+};
 
+
+GameEngine.prototype.loadGame = function() {
+    console.log("GE: load button clicked");
+    socket.emit("load", {studentname: "Brandon Bell", statename: "gameState"});
+
+
+};
+
+
+GameEngine.prototype.onLoad = function(data) {
+    var test = JSON.parse(data);
+    console.log("Game engine onLoad called: " + data);
+
+    //TODO play around in here with data to see what the types are/should be
+    //var parseMe = "'" + data + "'";
+    var realData = JSON.parse(data);
+
+    var leftArmy = realData["leftArmy"];
+    var rightArmy = realData["rightArmy"];
+
+    this.armyFromSerial(leftArmy);
+    this.armyFromSerial(rightArmy);
+
+
+    for (var i = 0; i < this.leftArmy.length; i++) {
+        console.log(this.leftArmy[i].type);
+        console.log(this.leftArmy[i].hasOwnProperty('update'));
+    }
+
+ //   this.injectIntoArray(this.leftArmy);
+   // this.injectIntoArray(this.rightArmy);
+
+
+    this.gameState.PAUSED = realData.currentGameState.PAUSED;
+    this.gameState.PREGAME = realData.currentGameState.PREGAME;
+    this.gameState.GAMEOVER = realData.currentGameState.GAMEOVER;
+
+    globals.leftDead = realData.leftDead;
+    globals.rightDead = realData.rightDead;
+
+};
+
+
+GameEngine.prototype.injectIntoArray = function(array) {
+
+    for (var i = 0; i < array.length; i++) {
+        array[i].game = this;
+    }
+
+};
+
+GameEngine.prototype.armyFromSerial = function(army) {
+
+    for (var i = 0; i < army.length; i++) {
+        var current = army[i];
+        console.log("current soldier from serial" + current);
+
+        var soldier = this.soldierFromCopy(current);
+
+        this.addSoldier(soldier);
+
+
+    }
+
+};
+
+GameEngine.prototype.soldierFromCopy = function(copy) {
+    var soldier = new Soldier(this, copy["x"], copy["y"], copy["team"], copy["type"]);
+
+    soldier.health =         copy["health"];
+    soldier.lastAttackTime = copy["lastAttackTime"];
+    soldier.attackDelay =    copy["attackDelay"];
+   // soldier.velocity.x = copy.velocity.x";
+    //soldier.velocity.y = copy.velocity.y";
+    soldier.debuffTime =     copy["debuffTime"];
+    soldier.hitChance =      copy["hitChance"];
+    soldier.radius =         copy["radius"];
+    return soldier;
+};
+
+//function assignEntityGame(game, entity)
 
 GameEngine.prototype.startInput = function () {
     console.log('Starting input');
@@ -286,3 +370,15 @@ Entity.prototype.rotateAndCache = function (image, angle) {
     //offscreenCtx.strokeRect(0,0,size,size);
     return offscreenCanvas;
 };
+
+function deepCopyArmy(array, newArray) {
+
+    //var newArray = [];
+
+    for (var i = 0; i < array.length; i++) {
+        newArray.push(array[i].carbonCopy());
+    }
+
+    //return newArray;
+
+}
