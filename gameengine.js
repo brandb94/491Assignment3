@@ -80,11 +80,17 @@ GameEngine.prototype.pauseGame = function() {
     this.gameState.PAUSED = !this.gameState.PAUSED;
 };
 
+/**
+ * Call helper function to bundle game data and
+ * evoke save operation on the server.
+ */
 GameEngine.prototype.saveGame = function() {
     saveState(this);
 };
 
-
+/**
+ * Evokes the load message onto the server
+ */
 GameEngine.prototype.loadGame = function() {
     console.log("GE: load button clicked");
     socket.emit("load", {studentname: "Brandon Bell", statename: "gameState"});
@@ -92,7 +98,10 @@ GameEngine.prototype.loadGame = function() {
 
 };
 
-
+/**
+ * Handles the data once it's returned from the server
+ * @param data from the server
+ */
 GameEngine.prototype.onLoad = function(data) {
     this.leftArmy = [];
     this.rightArmy = [];
@@ -111,8 +120,7 @@ GameEngine.prototype.onLoad = function(data) {
     this.armyFromSerial(rightArmy);
 
 
- //   this.injectIntoArray(this.leftArmy);
-   // this.injectIntoArray(this.rightArmy);
+
 
 
     this.gameState.PAUSED = realData.currentGameState.PAUSED;
@@ -125,14 +133,12 @@ GameEngine.prototype.onLoad = function(data) {
 };
 
 
-GameEngine.prototype.injectIntoArray = function(array) {
 
-    for (var i = 0; i < array.length; i++) {
-        array[i].game = this;
-    }
-
-};
-
+/**
+ * Takes the serialzed array of soldier copy info and
+ * recreates all of the soldiers.
+ * @param army
+ */
 GameEngine.prototype.armyFromSerial = function(army) {
 
     for (var i = 0; i < army.length; i++) {
@@ -147,7 +153,11 @@ GameEngine.prototype.armyFromSerial = function(army) {
     }
 
 };
-
+/**
+ * Creates a soldier from the stat object create by saveState()
+ * @param copy soldier to copy
+ * @returns {Soldier} restored soldier from array
+ */
 GameEngine.prototype.soldierFromCopy = function(copy) {
     var soldier = new Soldier(this, copy["x"], copy["y"], copy["team"], copy["type"]);
 

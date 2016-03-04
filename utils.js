@@ -3,9 +3,10 @@
  */
 
 
-
-
-
+/**
+ * Bundles all of the game's pertinent data into an object and sends it off to the server.
+ * @param game to save the state of
+ */
 function saveState(game) {
 
     var saveData = {};
@@ -41,7 +42,3 @@ function saveState(game) {
 
 }
 
-
-function SoldierSerialStats() {
-
-}
